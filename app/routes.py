@@ -10,22 +10,22 @@ user_router = APIRouter(prefix='/user')
 test_router = APIRouter(prefix='/test ', dependencies=[Depends(token_verifier)])
 
 
-@user_router.post('/register')
+@user_router.post('/customer/register', status_code=201)
 def user_register(user: Customer, db_session: Session = Depends(get_db_session)):
     uc = UserUseCases(db_session=db_session)
     uc.user_register(user=user)
     return JSONResponse(
         content={'msg': 'success'},
-        status_code=status.HTTP_200_CREATED
+        status_code=status.HTTP_201_CREATED
     )
 
 
-@user_router.post('/login')
+@user_router.post('/customer/login')
 def user_login(request_form_user: OAuth2PasswordRequestForm = Depends(), db_session: Session = Depends(get_db_session)):
     uc = UserUseCases(db_session=db_session)
     user = Customer(
-        email = request_form_user.client_id,
-        password_hash = request_form_user.client_secret
+        email = request_form_user.username,
+        password_hash = request_form_user.password
     )
     print(user)
 
@@ -35,10 +35,21 @@ def user_login(request_form_user: OAuth2PasswordRequestForm = Depends(), db_sess
         status_code=status.HTTP_200_OK
     )
 
+@user_router.post('/customer/delete-user')
+def user_login(access_token: str, db_session: Session = Depends(get_db_session)):
+    uc = UserUseCases(db_session=db_session)
+    uc.user_deactivation(access_token=access_token)
+
+    return JSONResponse(
+        content={'msg': 'successfully deactivated'},
+        status_code=status.HTTP_200_OK
+    )
+
+
 @user_router.post('/register-budget')
 def budget_register(budget: Budget, access_token: str, db_session: Session = Depends(get_db_session)):
     uc = UserUseCases(db_session=db_session)
-    uc.budgetRegister(budget=budget, access_token=access_token)
+    uc.budget_register(budget=budget, access_token=access_token)
     return JSONResponse(
         content={'msg': 'success'},
         status_code=status.HTTP_201_CREATED

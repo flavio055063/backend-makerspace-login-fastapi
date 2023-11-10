@@ -31,7 +31,7 @@ class UserUseCases:
             estado =  user.estado,
             cep =  user.cep,
             email =  user.email,
-            isAdmin = False
+            
         )
         try:
             self.db_session.add(user_model)
@@ -89,14 +89,14 @@ class UserUseCases:
             )
         return user_on_db
 
-    def budgetRegister(self, budget: Budget, access_token):
+    def budget_register(self, budget: Budget, access_token):
         # Verify if the user is an admin
         user = self.verify_token(access_token)
-        print(user.isAdmin)
-        if not user.isAdmin:
+        print(user)
+        if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail='Only admins can create budgets'
+                detail='Invalid access token'
             )
 
         budgetModel = BudgetModel(
@@ -111,5 +111,24 @@ class UserUseCases:
         except IntegrityError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail='Failed to create the budget'
+                detail='Failed to create the service budget'
+            )
+        
+    
+    def user_deactivation(self, access_token):
+        user = self.verify_token(access_token)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Please login to deactivate your account.'
+            )
+
+        try:
+            # Modificar a coluna is_active para False
+            user.is_active = False
+            self.db_session.commit()
+        except IntegrityError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Failed to deactivate user account.'
             )

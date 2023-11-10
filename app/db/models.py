@@ -14,6 +14,7 @@ class CustomerModel(Base):
     cep = Column('cep', String, nullable=False)
     email = Column('email', String, nullable=False, unique=True, index=True)
     password_hash = Column('password_hash', String, nullable=False)
+    is_active = Column(Boolean, default=True)
 
 class BudgetModel(Base):
     __tablename__ = "budget"
@@ -34,6 +35,7 @@ class BudgetModel(Base):
 
 class ConsumesModel(Base):
     __tablename__ = "consumes"
+    consumes_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     budget_id = Column(Integer, ForeignKey("budget.budget_id"))
     material_id = Column(Integer, ForeignKey("materials.material_id"))
     quantity = Column(Integer, nullable=False)
@@ -50,18 +52,22 @@ class MaterialsModel(Base):
 class Print3dModel(BudgetModel):
     __tablename__ = "print3d_budget"
     print3d_id = Column(Integer, primary_key=True, autoincrement=True)
+    budget_id = Column(Integer, ForeignKey("budget.budget_id"))
     plastic_color = Column(String)
     layer_height = Column(Float)
     use_support = Column(Boolean)
     scale = Column(Float)
     infill_percent = Column(Integer)
     other_params = Column(String)
+    budget = relationship("BudgetModel")
 
 class LaserCutModel(BudgetModel):
     __tablename__ = "lasercut_budget"
     lasercut_id = Column(Integer, primary_key=True, autoincrement=True)
-    operation_type = Column(Enum('engrave', 'cut', 'dotted'))
+    budget_id = Column(Integer, ForeignKey("budget.budget_id"))
+    operation_type = Column(String, Enum('engrave', 'cut', 'dotted'))
     scale = Column(Float)
+    budget = relationship("BudgetModel")
 
 class MakerMemberModel(Base):
     __tablename__ = "maker_member"
@@ -69,15 +75,16 @@ class MakerMemberModel(Base):
     name = Column(String, nullable=False)
     matricula = Column(String, nullable=False)
     cellphone_number = Column(String, nullable=False)
-    id_area = Column(Integer, nullable=False, ForeignKey("area.area_id"))
+    id_area = Column(Integer, ForeignKey("area.area_id"), nullable=False)
     is_active = Column(Boolean, nullable=False, default=True)
+    is_capitain = Column(Boolean, nullable=False, default=False)
     area = relationship("AreaModel")
 
 class AreaModel(Base):
+    __tablename__ = "area"
     area_id = Column(Integer, nullable=False, primary_key=True)
     description = Column(String, nullable=False)
-    team_capitain_id = Column(Integer, nullable=False, ForeignKey("maker_member.user_id"))
-    team_capitain = relationship("MakerMemberModel")
+    
 
 
 
